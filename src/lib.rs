@@ -1,4 +1,4 @@
-//! freertos-sys2 provides low-level bindings to FreeRTOS functions
+//! freertos-sys2 provides low-level bindings to FreeRTOS functions 
 //!
 //! NOTE: this is currently a very incomplete selection of function signatures, that match the
 //! selection we needed. Additionally, the presence of some of these functions vary based on
