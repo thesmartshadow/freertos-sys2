@@ -68,12 +68,43 @@ extern "C" {
     pub fn vPortFree(pv: *mut c_void);
 }
 
+// NOTE:
+//
+// FreeRTOS typedefs (`BaseType_t`, `UBaseType_t`, `TickType_t`) are
+// *implementation-defined* and depend on the target port and configuration
+// (for example, `configUSE_16_BIT_TICKS` can make `TickType_t` 16-bit).
+//
+// Hard-coding these as fixed 32-bit Rust types (`i32` / `u32`) can cause
+// ABI mismatches and undefined behavior when the underlying FreeRTOS
+// port uses narrower integer widths.
+//
+// To keep the default behavior backwards compatible while allowing users
+// to correctly match their FreeRTOS port, we expose simple feature-gated
+// aliases.  If you are using a 16-bit FreeRTOS port (or a port where these
+// types are 16-bit), enable the corresponding features in your Cargo.toml:
+//
+// freertos-sys2 = {
+//     version = "0.2",
+//     features = ["basetype_i16", "ubasetype_u16", "tick_u16"],
+// }
+//
+// This is intentionally conservative and keeps the build system simple;
+// more advanced auto-detection can be added in a future build.rs without
+// breaking this public API surface.
+
+#[cfg(feature = "basetype_i16")]
+pub type BaseType_t = i16;
+#[cfg(not(feature = "basetype_i16"))]
 pub type BaseType_t = i32;
+
+#[cfg(feature = "ubasetype_u16")]
+pub type UBaseType_t = u16;
+#[cfg(not(feature = "ubasetype_u16"))]
 pub type UBaseType_t = u32;
 
-// FIXME: these function definitions rely on TickType_t being uint32_t, freertos can be configured
-// to use different tick sizes. check `FreeRTOS_config.h`. We may need to provide a feature to
-// adjust this.
+#[cfg(feature = "tick_u16")]
+pub type TickType_t = u16;
+#[cfg(not(feature = "tick_u16"))]
 pub type TickType_t = u32;
 
 pub type TaskHandle_t = *mut c_void;
